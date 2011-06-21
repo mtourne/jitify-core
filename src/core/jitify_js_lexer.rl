@@ -9,17 +9,17 @@
 %%{
   machine jitify_js;
   include jitify_common "jitify_lexer_common.rl";
-  
+
   js_space = /[ \t]/+
     >{ TOKEN_START(jitify_type_js_whitespace); } %{ TOKEN_END; };
-  
+
   _line_end = ( /\r/? /\n/ );
-  
+
   js_line_end = _line_end+
     >{ TOKEN_START(jitify_type_js_newline); } %{ TOKEN_END; };
-  
+
   html_comment ='-->' %{ state->html_comment = 1; };
-  
+
   single_quoted = (
     "'" ( [^'\\] | /\\./)* "'"
   ) >{ TOKEN_START(jitify_token_type_misc); } %{ TOKEN_END; };
@@ -27,7 +27,7 @@
   double_quoted = (
     '"' ( [^"\\] | /\\./ )* '"'
   ) >{ TOKEN_START(jitify_token_type_misc); } %{ TOKEN_END; };
-  
+
   js_misc = (
     any - [ \t\r\n'"/]
   )+ >{ TOKEN_START(jitify_token_type_misc); } %{ TOKEN_END; };
@@ -45,7 +45,7 @@
   regex = (
     ( [^\\/] | /\\./ )+ :>> '/' @{ state->slash_elem_complete = 1; }
   );
-  
+
   slash_element_perhaps_regex := (
     '/' @{ TOKEN_START(jitify_token_type_misc); state->slash_elem_complete = 0; }
     (
@@ -75,7 +75,7 @@
     }
   }
   ;
-  
+
   slash_element_not_regex := (
     '/' @{ TOKEN_START(jitify_token_type_misc); state->slash_elem_complete = 1; }
     (
@@ -100,7 +100,7 @@
     }
   }
   ;
-  
+
   # ECMAscript actually uses two different lexical grammars for different
   # syntactic contexts.  One of those lexical grammars allows the division
   # operator '/', while the other allows the regular expression format '/.../'.
@@ -140,7 +140,7 @@
          fgoto slash_element_not_regex;
        }
      };
-  
+
   program = (
        js_space |
        js_line_end |
@@ -149,18 +149,18 @@
        slash_element |
        js_misc
   )**;
-  
+
   main := (
     byte_order_mark?
     program
   ) $err(main_err);
-  
+
   write data;
 }%%
 
 int jitify_js_scan(jitify_lexer_t *lexer, const void *data, size_t length, int is_eof)
 {
-  const char *p = data, *pe = data + length;
+  const char *p = data, *pe = p + length;
   const char *eof = is_eof ? pe : NULL;
   jitify_js_state_t *state = lexer->state;
   if (!lexer->initialized) {

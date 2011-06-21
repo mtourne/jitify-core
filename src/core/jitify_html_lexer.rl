@@ -10,7 +10,7 @@
   machine jitify_html;
   include jitify_common "jitify_lexer_common.rl";
   include css_grammar   "jitify_css_lexer_common.rl";
-  
+
   tag_close = '/'? @{ state->trailing_slash = 1; } '>';
 
   name_char = (alnum | '-' | '_' | '.' | ':');
@@ -21,7 +21,7 @@
     TOKEN_END;
   }
 
-  conditional_comment = '[if' %{ state->conditional_comment = 1; };
+  conditional_comment = '[' ('if'i | 'endif') %{ state->conditional_comment = 1; };
 
   comment = '--' %{ TOKEN_TYPE(jitify_type_html_comment); state->conditional_comment = 0; }
     (any | conditional_comment)* :>> '-->' %{ TOKEN_END; };
@@ -43,23 +43,23 @@
     >{ ATTR_VALUE_START;
        ATTR_SET_QUOTE(0); }
     %{ ATTR_VALUE_END; };
-  
+
   single_quoted_attr_value = "'" @{ ATTR_SET_QUOTE('\''); }
   ( /[^']*/ ) >{ ATTR_VALUE_START; } %{ ATTR_VALUE_END; }
   "'";
-  
+
   double_quoted_attr_value = '"' @{ ATTR_SET_QUOTE('"'); }
   ( /[^"]*/ )
     >{ ATTR_VALUE_START; }
     %{ ATTR_VALUE_END; }
   '"';
-  
+
   attr_value = (
     unquoted_attr_value |
     single_quoted_attr_value  |
     double_quoted_attr_value
   );
-  
+
   unparsed_attr_name = (
     alpha (alnum | '-' | '_' | ':')*
   );
@@ -75,14 +75,14 @@
   );
 
   preformatted_close = '</' /(pre|textarea)/i '>' @{ state->nominify_depth--; };
-  
+
   preformatted_open= (/pre/i | /textarea/i) @{ state->nominify_depth++; }
     (space+ unparsed_attr)* space* tag_close;
-  
+
   script_close = '</' /script/i '>';
 
   tag_attrs = (space+ %{ ATTR_END;} ( attr_name <: space* ( '=' space* attr_value <: space*)? )*);
-  
+
   script = (
     /script/i
       >{ ATTR_KEY_START; }
@@ -105,7 +105,7 @@
       >{ TOKEN_TYPE(jitify_token_type_misc); }
       %{ TOKEN_END; }
   );
-  
+
   misc_tag = (
     '/'?
       @{ state->leading_slash = 1; }
@@ -116,10 +116,10 @@
     >{ TOKEN_TYPE(jitify_type_html_tag); };
 
   _xml_tag_close = '?>';
-  
+
   xml_tag = ( '?' (any* - _xml_tag_close) :>> _xml_tag_close )
     >{ TOKEN_TYPE(jitify_token_type_misc); };
-    
+
   element = (
     script
     |
@@ -139,13 +139,13 @@
     >{ TOKEN_START(jitify_type_html_space);
        state->space_contains_newlines = 0; }
     %{ TOKEN_END; };
-  
+
   content = (
     any - (space | '<' )
   )+
     >{ TOKEN_START(jitify_token_type_misc); }
     %{ TOKEN_END; };
-  
+
   main := (
     byte_order_mark?
     (
@@ -163,13 +163,13 @@
       content
     )**
   ) $err(main_err);
-  
+
   write data;
 }%%
 
 int jitify_html_scan(jitify_lexer_t *lexer, const void *data, size_t length, int is_eof)
 {
-  const char *p = data, *pe = data + length;
+  const char *p = data, *pe = p + length;
   const char *eof = is_eof ? pe : NULL;
   jitify_html_state_t *state = lexer->state;
   if (!lexer->initialized) {

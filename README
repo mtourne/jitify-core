@@ -1,11 +1,106 @@
-jitify-core v0.9.2
+Jitify NGINX Documentation
+--------------------------
 
-This distribution contains the source code for:
-  Jitify Tools
-  Jitify for Apache
-  Jitify for nginx
+Jitify is an auto-minification parser than can be used with Apache and NGINX
+Original code and documentation can be found here :
+  https://github.com/brianpane/jitify-core
 
-For compilation and installation instructions, please see the INSTALL file.
+Synopsis
+   http {
+    jitify $jitify_on;
 
-Documentation is available online at http://www.jitify.com/
+    server {
+        set $jitify_on 0;
 
+        location /minify_js {
+            set $jitify_on 1;
+        }
+
+        location /minify_html {
+            set $jitify_on 4;
+        }
+
+        location /minify_all {
+            set $jitify_on 7;
+        }
+    }
+
+
+Directives
+
+    jitify
+        syntax: jitify <varval>
+
+        default: 0
+
+        use a numeric value to configure if the feature is on
+        and what it acts upon with a bitset.
+        js: 1
+        css: 2
+        html: 4
+        (so all on = 7)
+
+        NOTE: <varval> is either a fixed numeric value at configuration
+        or a variable that takes its value during execution time
+
+
+    jitify_html_types
+        syntax: jitify_html_types "text/html" ...
+
+        default: text/html
+
+        if html minifying is on, what content-type it looks for.
+
+
+    jitify_js_types
+        syntax: jitify_js_types "application/javascript" ...
+
+        default: "text/javascript" "application/javascript" "application/x-javascript"
+
+        if js minifying is on, what content-type it looks for.
+
+
+    jitify_css_types
+        syntax: jitify_js_types "text/css" ...
+
+        default: "text/css"
+
+        if css minifying is on, what content-type it looks for.
+
+
+
+Installation
+    Grab the nginx source code from httpnginx.org (<http://nginx.org/ >), for
+    the source with this module:
+
+        $ cd nginx-<version>/
+
+        # Here we assume you would install you nginx under /opt/nginx/.
+        $ ./configure --prefix=/opt/nginx \
+            --add-module=/path/to/jity-core/src/nginx
+
+        $ make -j2
+        $ make install
+
+
+Copyright & License
+
+
+Copyright (c) 2009-2011 Brian Pane
+
+
+Copyright (c) 2010, 2011 CloudFlare, Inc. (http://www.cloudflare.com)
+Copyright (c) 2010, 2011 Matthieu Tourne <matthieu.tourne@gmail.com>
+
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.

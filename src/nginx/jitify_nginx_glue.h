@@ -16,22 +16,42 @@
 
 #include "jitify.h"
 
-extern jitify_pool_t *jitify_nginx_pool_create(ngx_pool_t *pool);
-
-extern jitify_output_stream_t *jitify_nginx_output_stream_create(jitify_pool_t *pool);
-
-extern jitify_output_stream_t *jitify_nginx_output_stream_create(jitify_pool_t *pool);
-
-/* Utility function to allocate, from a pool, a null-terminated copy of one of nginx's pointer/length strings */
-extern char *jitify_nginx_strdup(jitify_pool_t *pool, ngx_str_t *str);
-
 /* Wrapper for an expandable list of buffers */
+/* DEPRECATED */
 typedef struct {
   ngx_chain_t      *first;
   ngx_chain_t      *last;
   ngx_pool_t       *pool;
 } jitify_nginx_chain_t;
 
-extern void jitify_nginx_add_eof(jitify_nginx_chain_t *chain);
+typedef struct {
+  jitify_pool_t			*pool;
+  jitify_lexer_t		*lexer;
+  jitify_output_stream_t	*jout;
+
+  ngx_buf_t			*out_buf;
+
+  ngx_chain_t			*out;
+  ngx_chain_t			**last_out;
+  ngx_chain_t			*busy;
+  ngx_chain_t			*free;
+
+  ngx_uint_t			bufs;
+
+  ngx_http_request_t		*request;
+} jitify_filter_ctx_t;
+
+
+
+jitify_pool_t *jitify_nginx_pool_create(ngx_pool_t *pool);
+
+jitify_output_stream_t *jitify_nginx_output_stream_create(jitify_pool_t *pool);
+
+/* Utility function to allocate, from a pool, a null-terminated copy of one of nginx's pointer/length strings */
+char *jitify_nginx_strdup(jitify_pool_t *pool, ngx_str_t *str);
+
+void jitify_nginx_add_eof(jitify_filter_ctx_t *ctx);
+
+
 
 #endif /* !defined(jitify_nginx_glue_h) */
